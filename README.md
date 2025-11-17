@@ -10,6 +10,44 @@ The card collects all scenes and categories, retrieves the image corresponding t
 
 I am by no means a developer. I simply had a vision and tried to bring it to life as best as I could with the resources available to me. If anyone can improve or refine it, please feel free to fork the project. I just wanted to share this card in case others might find it useful.
 
+### Configuration Options
+#### Layout & Display
+| Option                 | Type          | Default           | Description                                                                       |
+| ---------------------- | ------------- | ----------------- | --------------------------------------------------------------------------------- |
+| **title**              | string | null | `"Scene Presets"` | Card header. Set to `null` or `""` to hide it.                                    |
+| **columns**            | number | null | `null`            | Fix the number of grid columns instead of auto-fill.                              |
+| **include_categories** | array | null  | `null`            | Only show presets whose *category name* matches an item in this array.            |
+| **show_background**    | boolean       | `true`            | Removes card background, border and shadow when set to `false` (useful in grids). |
+
+#### Control Visibility
+| Option                       | Type    | Default | Description                                                                                                |
+| ---------------------------- | ------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| **show_controls**            | boolean | `true`  | **Master toggle** — when set to `false`, *all* controls are hidden regardless of individual toggles below. |
+| **show_brightness_controls** | boolean | `true`  | Show/hide the “Custom Brightness” switch and brightness slider.                                            |
+| **show_transition_controls** | boolean | `true`  | Show/hide the transition duration slider.                                                                  |
+| **show_interval_controls**   | boolean | `true`  | Show/hide the interval slider.                                                                             |
+
+#### Default Control Values
+| Option                        | Type    | Default | Description                                        |
+| ----------------------------- | ------- | ------- | -------------------------------------------------- |
+| **default_transition**        | number  | `2`     | Default transition time (seconds).                 |
+| **default_interval**          | number  | `60`    | Default interval duration (seconds).               |
+| **default_brightness**        | number  | `200`   | Default brightness (0–255).                        |
+| **default_custom_brightness** | boolean | `false` | Whether “Custom Brightness” is enabled by default. |
+
+#### Interaction & UX
+| Option              | Type    | Default | Description                                         |
+| ------------------- | ------- | ------- | --------------------------------------------------- |
+| **haptic_feedback** | boolean | `false` | Trigger light haptic/vibration when tapping a tile. |
+
+#### Service Call
+| Option           | Type               | Default                               | Description                                                                                                                |
+| ---------------- | ------------------ | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **service**      | string             | `"scene_presets.start_dynamic_scene"` | Service to call when tapping a preset tile. Format: `"domain.service"`.                                                    |
+| **service_data** | object             | `{ preset_id: "{{id}}" }`             | Template-expanded fields passed into the service. Supports: `{{id}}`, `{{name}}`, `{{category}}`, `{{img}}`, `{{custom}}`. |
+| **id**           | string | undefined | `undefined`                           | Optional card ID used to scope localStorage. Recommended when using multiple cards.                                        |
+
+
 ### Example config
 ```
 type: custom:scene-presets-gallery-card
