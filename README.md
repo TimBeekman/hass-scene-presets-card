@@ -16,7 +16,6 @@ I am by no means a developer. I simply had a vision and tried to bring it to lif
 | ---------------------- | ------------- | ----------------- | --------------------------------------------------------------------------------- |
 | **title**              | string | null | `"Scene Presets"` | Card header. Set to `null` or `""` to hide it.                                    |
 | **columns**            | number | null | `null`            | Fix the number of grid columns instead of auto-fill.                              |
-| **include_categories** | array | null  | `null`            | Only show presets whose *category name* matches an item in this array.            |
 | **show_background**    | boolean       | `true`            | Removes card background, border and shadow when set to `false` (useful in grids). |
 
 #### Control Visibility
