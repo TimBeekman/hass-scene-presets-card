@@ -7,10 +7,14 @@ class ScenePresetsGalleryCard extends HTMLElement {
         service_data: { preset_id: "{{id}}" },
         include_categories: null,   // array of category NAMES to include (after id→name mapping)
         columns: null,              // integer for fixed columns; default auto-fill
-        show_controls: true,        // show sliders/toggle header
-        show_background: true,      // remove ha-card background/border/shadow when false
-        haptic_feedback: false,     // NEW: light haptic on tile tap when true
-        id: undefined,              // optional: stable id to scope localStorage
+        show_controls: true,              // master switch (false overrides all below)
+        show_brightness_controls: true,   // brightness toggle + slider
+        show_transition_controls: true,   // preferred key
+        show_interval_controls: true,     // interval slider
+        show_background: true,            // remove ha-card background/border/shadow when false
+        haptic_feedback: false,           // light haptic on tile tap when true
+        id: undefined,                    // optional: stable id to scope localStorage
+
         // initial defaults (override in YAML)
         default_transition: 2,
         default_interval: 60,
@@ -57,9 +61,9 @@ class ScenePresetsGalleryCard extends HTMLElement {
           /* --- controls: stacked label + full-width slider + value at right --- */
           .controls { padding: 8px 16px 0 16px; display: grid; gap: 8px; }
           .switchRow { display: flex; align-items: center; gap: 8px; }
-          .switchRow label { font-weight: 600; opacity: .9; }
+          .switchRow label { font-weight: normal; opacity: .9; }
           .group { display: grid; gap: 4px; }
-          .group .lbl { opacity: .85; }
+          .group .lbl { opacity: .9; font-weight: normal; }
           .group .track {
             display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
           }
@@ -126,22 +130,6 @@ class ScenePresetsGalleryCard extends HTMLElement {
           
           .empty { grid-column: 1/-1; opacity: .7; padding: 4px 0 8px; }
           .error { grid-column: 1/-1; color: var(--error-color); }
-
-          .header {
-            font-weight: 600;
-            padding: 12px 16px 0 16px;
-          }
-    
-          /* normalize control label weights */
-          .switchRow label {
-            font-weight: normal;   /* match other text */
-            opacity: .9;
-          }
-    
-          .group label {
-            font-weight: normal;   /* ensure consistent font style */
-            opacity: .9;
-          }
         </style>
       `;
 
@@ -169,6 +157,7 @@ class ScenePresetsGalleryCard extends HTMLElement {
     const base = this._config.id || this._config.title || "default";
     return `spgc:${base}`;
   }
+
   _loadState() {
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem(this._storageKey()) || "{}"); } catch {}
@@ -179,6 +168,7 @@ class ScenePresetsGalleryCard extends HTMLElement {
       customBrightness: saved.customBrightness ?? this._config.default_custom_brightness,
     };
   }
+
   _saveState() {
     try { localStorage.setItem(this._storageKey(), JSON.stringify(this._state)); } catch {}
   }
@@ -200,64 +190,128 @@ class ScenePresetsGalleryCard extends HTMLElement {
 
   _renderControls() {
     const ctr = this._root.querySelector(".controls");
-    if (!this._config.show_controls) { ctr.style.display = "none"; return; }
+
+    // --- master switch: show_controls === false => hide everything ---
+    if (this._config.show_controls === false) {
+      ctr.style.display = "none";
+      ctr.innerHTML = "";
+      return;
+    }
+
+    // Per-group flags (default true); master=false already returned above.
+    const showBrightness =
+      this._config.show_brightness_controls !== false;
+
+    // Support both correct and common typo for transition controls
+    const showTransition =
+      (this._config.show_transition_controls ??
+       this._config.show_transistion_controls ??
+       true) !== false;
+
+    const showInterval =
+      this._config.show_interval_controls !== false;
+
+    // If nothing is enabled, just hide the container.
+    if (!showBrightness && !showTransition && !showInterval) {
+      ctr.style.display = "none";
+      ctr.innerHTML = "";
+      return;
+    }
+
     ctr.style.display = "block";
 
-    ctr.innerHTML = `
-      <div class="switchRow">
-        <label>Custom Brightness</label>
-        <input id="cb" type="checkbox" ${this._state.customBrightness ? "checked" : ""}>
-      </div>
+    let html = "";
 
-      <div class="group" id="bGroup" style="${this._state.customBrightness ? "" : "display:none"}">
-        <div class="track">
-          <input id="b" type="range" min="0" max="255" step="1" value="${this._state.brightness}">
-          <div class="val" id="bVal">${this._state.brightness}</div>
+    // --- brightness controls (switch + slider) ---
+    if (showBrightness) {
+      html += `
+        <div class="switchRow">
+          <label>Custom Brightness</label>
+          <input id="cb" type="checkbox" ${this._state.customBrightness ? "checked" : ""}>
         </div>
-      </div>
 
-      <div class="group">
-        <div class="lbl">Transition</div>
-        <div class="track">
-          <input id="t" type="range" min="0" max="300" step="1" value="${this._state.transition}">
-          <div class="val" id="tVal">${this._state.transition}s</div>
+        <div class="group" id="bGroup" style="${this._state.customBrightness ? "" : "display:none"}">
+          <div class="track">
+            <input id="b" type="range" min="0" max="255" step="1" value="${this._state.brightness}">
+            <div class="val" id="bVal">${this._state.brightness}</div>
+          </div>
         </div>
-      </div>
+      `;
+    }
 
-      <div class="group">
-        <div class="lbl">Interval</div>
-        <div class="track">
-          <input id="i" type="range" min="0" max="300" step="1" value="${this._state.interval}">
-          <div class="val" id="iVal">${this._state.interval}s</div>
+    // --- transition controls ---
+    if (showTransition) {
+      html += `
+        <div class="group">
+          <div class="lbl">Transition</div>
+          <div class="track">
+            <input id="t" type="range" min="0" max="300" step="1" value="${this._state.transition}">
+            <div class="val" id="tVal">${this._state.transition}s</div>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
+
+    // --- interval controls ---
+    if (showInterval) {
+      html += `
+        <div class="group">
+          <div class="lbl">Interval</div>
+          <div class="track">
+            <input id="i" type="range" min="0" max="300" step="1" value="${this._state.interval}">
+            <div class="val" id="iVal">${this._state.interval}s</div>
+          </div>
+        </div>
+      `;
+    }
+
+    ctr.innerHTML = html;
 
     const $ = (id) => this._root.getElementById(id);
 
-    $("cb").addEventListener("change", (e) => {
-      this._state.customBrightness = !!e.target.checked;
-      this._root.getElementById("bGroup").style.display = this._state.customBrightness ? "" : "none";
-      this._saveState();
-    });
-    $("b")?.addEventListener("input", (e) => {
-      this._state.brightness = Number(e.target.value);
-      this._root.getElementById("bVal").textContent = this._state.brightness;
-      this._saveState();
-    });
-    $("t").addEventListener("input", (e) => {
-      this._state.transition = Number(e.target.value);
-      this._root.getElementById("tVal").textContent = `${this._state.transition}s`;
-      this._saveState();
-    });
-    $("i").addEventListener("input", (e) => {
-      this._state.interval = Number(e.target.value);
-      this._root.getElementById("iVal").textContent = `${this._state.interval}s`;
-      this._saveState();
-    });
+    // Attach listeners only if elements exist
+    const cbEl = $("cb");
+    if (cbEl) {
+      cbEl.addEventListener("change", (e) => {
+        this._state.customBrightness = !!e.target.checked;
+        const group = this._root.getElementById("bGroup");
+        if (group) group.style.display = this._state.customBrightness ? "" : "none";
+        this._saveState();
+      });
+    }
+
+    const bEl = $("b");
+    if (bEl) {
+      bEl.addEventListener("input", (e) => {
+        this._state.brightness = Number(e.target.value);
+        const bVal = this._root.getElementById("bVal");
+        if (bVal) bVal.textContent = this._state.brightness;
+        this._saveState();
+      });
+    }
+
+    const tEl = $("t");
+    if (tEl) {
+      tEl.addEventListener("input", (e) => {
+        this._state.transition = Number(e.target.value);
+        const tVal = this._root.getElementById("tVal");
+        if (tVal) tVal.textContent = `${this._state.transition}s`;
+        this._saveState();
+      });
+    }
+
+    const iEl = $("i");
+    if (iEl) {
+      iEl.addEventListener("input", (e) => {
+        this._state.interval = Number(e.target.value);
+        const iVal = this._root.getElementById("iVal");
+        if (iVal) iVal.textContent = `${this._state.interval}s`;
+        this._saveState();
+      });
+    }
   }
 
-  _log(...a){ if (this._config.debug) console.debug("[sp-gallery]", ...a); }
+  _log(...a) { if (this._config.debug) console.debug("[sp-gallery]", ...a); }
 
   /* ---------- data loading + rendering ---------- */
   async _load() {
@@ -423,4 +477,5 @@ class ScenePresetsGalleryCard extends HTMLElement {
     } catch {}
   }
 }
+
 customElements.define("scene-presets-gallery-card", ScenePresetsGalleryCard);
