@@ -44,7 +44,6 @@ I am by no means a developer. I simply had a vision and tried to bring it to lif
 | ---------------- | ------------------ | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | **service**      | string             | `"scene_presets.start_dynamic_scene"` | Service to call when tapping a preset tile. Format: `"domain.service"`.                                                    |
 | **service_data** | object             | `{ preset_id: "{{id}}" }`             | Template-expanded fields passed into the service. Supports: `{{id}}`, `{{name}}`, `{{category}}`, `{{img}}`, `{{custom}}`. |
-| **id**           | string | undefined | `undefined`                           | Optional card ID used to scope localStorage. Recommended when using multiple cards.                                        |
 
 
 ### Example config
