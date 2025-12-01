@@ -14,8 +14,8 @@ I am by no means a developer. I simply had a vision and tried to bring it to lif
 #### Layout & Display
 | Option                 | Type          | Default           | Description                                                                       |
 | ---------------------- | ------------- | ----------------- | --------------------------------------------------------------------------------- |
-| **title**              | string | null | `"Scene Presets"` | Card header. Set to `null` or `""` to hide it.                                    |
-| **columns**            | number | null | `null`            | Fix the number of grid columns instead of auto-fill.                              |
+| **title**              | string        | `"Scene Presets"` | Card header. Set to `null` or `""` to hide it.                                    |
+| **columns**            | number        | `null`            | Fix the number of grid columns instead of auto-fill.                              |
 | **show_background**    | boolean       | `true`            | Removes card background, border and shadow when set to `false` (useful in grids). |
 
 #### Control Visibility
